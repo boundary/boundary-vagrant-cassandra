@@ -14,10 +14,10 @@ Prior to installation you need to obtain in your Boundary API Token.
 
 1. Clone the GitHub Repository:
 ```bash
-$ git clone https://github.com/boundary/boundary-vagrant-redis
+$ git clone https://github.com/boundary/boundary-vagrant-casssandra
 ```
 
-2. Start the virtual machine using your Boundary API Token and Redis version:
+2. Start the virtual machine using your Boundary API Token and Cassandra package name:
 ```bash
 $ BOUNDARY_API_TOKEN=<Boundary API Token> BOUNDARY_CASSANDRA_PACKAGE=<dsc20, dsc21 or dsc22 (default)> vagrant up <virtual machine name>
 ```
