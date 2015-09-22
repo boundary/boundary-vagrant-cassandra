@@ -11,25 +11,32 @@ node /^ubuntu/ {
     source  => '/vagrant/manifests/bash_profile'
   }
 
+  exec { 'update-apt-packages':
+    command => '/usr/bin/apt-get update -y',
+  }
+
   class { 'cassandra::datastax_repo':
     before => Class['cassandra']
   }
 
   class { 'cassandra::java':
-    before => Class['cassandra']
+   require => Exec['update-apt-packages'],
+   before => Class['cassandra']
   }
 
   class { 'cassandra':
-    cluster_name    => 'TestingCluster',
-    endpoint_snitch => 'GossipingPropertyFileSnitch',
-    listen_address  => "127.0.0.1",
-    num_tokens      => 256,
-    seeds           => '127.0.0.1',
-    auto_bootstrap  => true
+   package_name => $::cassandra_package,
+   cluster_name => 'Testing Cluster',
+   endpoint_snitch => 'GossipingPropertyFileSnitch',
+   listen_address => $::ipaddress_lo,
+   num_tokens => 256,
+   seeds => "$::ipaddress_lo",
+   auto_bootstrap = true,   
+   require => Exec['update-apt-packages']
   }
 
   class { 'boundary':
-    token => $boundary_api_token,
+    token => $::boundary_api_token,
   }
 
 }
@@ -39,7 +46,6 @@ node /^centos-7-0/ {
   file { 'bash_profile':
     path    => '/home/vagrant/.bash_profile',
     ensure  => file,
-    require => Class['redis'],
     source  => '/vagrant/manifests/bash_profile'
   }
 
@@ -51,27 +57,6 @@ node /^centos-7-0/ {
   package {'epel-release':
     ensure => 'installed',
     require => Exec['update-rpm-packages']
-  }
-
-  class { 'redis::install':
-    redis_version => $redis_version,
-    require => Package['epel-release'],
-  }
-
-  redis::server {
-    'redis':
-      redis_name => 'boundary',
-      running => true,
-      enabled => true,
-  }
-
-  redis::server {
-    'redis-auth':
-      redis_name => 'boundary_auth',
-      redis_port => 6380,
-      running => true,
-      enabled => true,
-      requirepass => 'boundary123',
   }
 
 }
@@ -81,7 +66,7 @@ node /^centos/ {
   file { 'bash_profile':
     path    => '/home/vagrant/.bash_profile',
     ensure  => file,
-    require => Class['redis::install'],
+    require => Class['cassandra'],
     source  => '/vagrant/manifests/bash_profile'
   }
 
@@ -90,34 +75,8 @@ node /^centos/ {
     creates => '/vagrant/.locks/update-rpm-packages',
   }
 
-  package {'epel-release':
-    ensure => 'installed',
-    require => Exec['update-rpm-packages']
-  }
-
-  class { 'redis::install':
-    redis_version => $redis_version,
-    require => Package['epel-release'],
-  }
-
-  redis::server {
-    'redis':
-      redis_name => 'boundary',
-      running => true,
-      enabled => true,
-  }
-
-  redis::server {
-    'redis-auth':
-      redis_name => 'boundary_auth',
-      redis_port => 6380,
-      running => true,
-      enabled => true,
-      requirepass => 'boundary123',
-  }
-
   class { 'boundary':
-    token => $boundary_api_token
+    token => $::boundary_api_token
   }
 
 }

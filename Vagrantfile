@@ -29,6 +29,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "ubuntu-14.04", autostart: false do |v|
     v.vm.box = "puppetlabs/ubuntu-14.04-64-puppet"
+    # fix box_version until Vagrant support newer versions of puppet.
     v.vm.box_version = "1.0.1"
     v.vm.hostname = "ubuntu-14-04"
   end
@@ -41,7 +42,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                      puppet module install puppetlabs-apt;
                      puppet module install locp-cassandra;
                      puppet module install boundary-boundary;
-                     sudo apt-get update -y;
                      exit 0"
   end
 
@@ -54,7 +54,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     puppet.manifest_file  = "site.pp"
     puppet.facter = {
       "boundary_api_token" => ENV["BOUNDARY_API_TOKEN"],
-      "redis_version" => ENV["BOUNDARY_REDIS_VERSION"] ||= "3.0.3"
+      "cassandra_package" => ENV["BOUNDARY_CASSANDRA_PACKAGE"] ||= "dsc22"
     }
   end
 

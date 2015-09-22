@@ -19,7 +19,7 @@ $ git clone https://github.com/boundary/boundary-vagrant-redis
 
 2. Start the virtual machine using your Boundary API Token and Redis version:
 ```bash
-$ BOUNDARY_API_TOKEN=<Boundary API Token> vagrant up <virtual machine name>
+$ BOUNDARY_API_TOKEN=<Boundary API Token> BOUNDARY_CASSANDRA_PACKAGE=<dsc20, dsc21 or dsc22 (default)> vagrant up <virtual machine name>
 ```
 NOTE: Run `vagrant status` to list the name of the virtual machines.
 
