@@ -8,7 +8,8 @@ node /^ubuntu/ {
   file { 'bash_profile':
     path    => '/home/vagrant/.bash_profile',
     ensure  => file,
-    source  => '/vagrant/manifests/bash_profile'
+    source  => '/vagrant/manifests/bash_profile',
+    require => Class['cassandra']
   }
 
   exec { 'update-apt-packages':
@@ -31,7 +32,7 @@ node /^ubuntu/ {
    listen_address => $::ipaddress_lo,
    num_tokens => 256,
    seeds => "$::ipaddress_lo",
-   auto_bootstrap = true,   
+   auto_bootstrap => true,
    require => Exec['update-apt-packages']
   }
 
@@ -46,17 +47,38 @@ node /^centos-7-0/ {
   file { 'bash_profile':
     path    => '/home/vagrant/.bash_profile',
     ensure  => file,
+    require => Class['cassandra'],
     source  => '/vagrant/manifests/bash_profile'
   }
 
   exec { 'update-rpm-packages':
     command => '/usr/bin/yum update -y',
-    creates => '/vagrant/.locks/update-rpm-packages',
   }
 
   package {'epel-release':
     ensure => 'installed',
-    require => Exec['update-rpm-packages']
+    require => Exec['update-rpm-packages'],
+    before => Class['cassandra']
+  }
+
+  class { 'cassandra::datastax_repo':
+    before => Class['cassandra']
+  }
+
+  class { 'cassandra::java':
+    require => Exec['update-rpm-packages'],
+    before => Class['cassandra']
+  }
+
+  class { 'cassandra':
+    package_name => $::cassandra_package,
+    cluster_name => 'Testing Cluster',
+    endpoint_snitch => 'GossipingPropertyFileSnitch',
+    listen_address => $::ipaddress_lo,
+    num_tokens => 256,
+    seeds => "$::ipaddress_lo",
+    auto_bootstrap => true,
+    require => Package['epel-release']
   }
 
 }
@@ -73,6 +95,32 @@ node /^centos/ {
   exec { 'update-rpm-packages':
     command => '/usr/bin/yum update -y',
     creates => '/vagrant/.locks/update-rpm-packages',
+  }
+
+  package {'epel-release':
+    ensure => 'installed',
+    require => Exec['update-rpm-packages'],
+    before => Class['cassandra']
+  }
+
+  class { 'cassandra::datastax_repo':
+    before => Class['cassandra']
+  }
+
+  class { 'cassandra::java':
+    require => Exec['update-rpm-packages'],
+    before => Class['cassandra']
+  }
+
+  class { 'cassandra':
+    package_name => $::cassandra_package,
+    cluster_name => 'Testing Cluster',
+    endpoint_snitch => 'GossipingPropertyFileSnitch',
+    listen_address => $::ipaddress_lo,
+    num_tokens => 256,
+    seeds => "$::ipaddress_lo",
+    auto_bootstrap => true,
+    require => Package['epel-release']
   }
 
   class { 'boundary':
